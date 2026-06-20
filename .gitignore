@@ -1,0 +1,6 @@
+__pycache__/
+*.log
+*.txt
+.env
+archive/
+.DS_Store

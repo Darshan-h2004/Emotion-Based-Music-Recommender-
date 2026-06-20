@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodTunes — Premium Emotion Music</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* 1. DESIGN TOKENS */
+        :root {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --border-glass: rgba(0, 0, 0, 0.08);
+            
+            --accent-purple: #f43f5e;
+            --accent-blue: #f97316;
+            --accent-green: #1DB954;
+            --accent-pink: #ff416c;
+            --accent-orange: #ff9068;
+            
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            
+            --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+            --space-5: 24px; --space-6: 32px; --space-8: 48px; --space-10: 64px;
+            
+            --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px; --radius-2xl: 28px;
+            
+            --shadow-glow-purple: 0 0 40px rgba(244, 63, 94, 0.15);
+            --shadow-glow-btn: 0 8px 20px rgba(244, 63, 94, 0.25);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.06);
+            
+            --font-main: 'Inter', sans-serif;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-base);
+            /* Subtle radial/mesh gradient background */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(244,63,94,0.06), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(249,115,22,0.06), transparent 25%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Animations */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: perspective(1200px) rotateX(15deg) translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: perspective(1200px) rotateX(0deg) translateY(0) scale(1); }
+        }
+        .animate-fade-up { animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform-origin: center bottom; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        /* ── Top Bar ───────────────────────────────── */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-4) var(--space-8);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+        .logo span { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-indicator { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); background: var(--bg-surface); padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border-glass); }
+
+        /* ── Main wrapper ──────────────────────────── */
+        .main { max-width: 1000px; margin: 0 auto; padding: var(--space-8) var(--space-5) var(--space-10); }
+
+        /* ── Hero / Controls ───────────────────────── */
+        .hero { text-align: center; margin-bottom: var(--space-8); }
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #0f172a 0%, #f43f5e 50%, #f97316 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--space-3);
+            line-height: 1.1;
+        }
+        .hero p { color: var(--text-secondary); font-size: 1.1rem; max-width: 500px; margin: 0 auto var(--space-6); line-height: 1.5; }
+
+        .controls {
+            display: inline-flex;
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 40px;
+            padding: var(--space-1);
+            align-items: center;
+            box-shadow: var(--shadow-glass);
+        }
+
+        select {
+            appearance: none;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: var(--space-3) var(--space-5) var(--space-3) var(--space-4);
+            cursor: pointer;
+            outline: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2394a3b8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+        select option { background: var(--bg-base); color: var(--text-primary); }
+        
+        .divider { width: 1px; height: 24px; background: var(--border-glass); margin: 0 var(--space-2); }
+
+        .btn {
+            padding: var(--space-3) var(--space-6);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); 
+            color: #fff; 
+            box-shadow: var(--shadow-glow-btn);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(244, 63, 94, 0.35); }
+        .btn-primary:active { transform: scale(0.96); }
+        
+        .btn-reset { background: transparent; color: var(--text-secondary); }
+        .btn-reset:hover { background: var(--bg-surface); color: var(--text-primary); }
+
+        /* ── Glass Cards (Shared) ──────────────────── */
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-glass);
+        }
+
+        /* 3D Popups */
+        .card, .dominant-card, .song-card, .btn-primary, .controls {
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+        }
+        .card:hover, .dominant-card:hover, .song-card:hover {
+            transform: perspective(1200px) translateY(-8px) rotateX(4deg) rotateY(-2deg) scale(1.02);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.12), 0 0 30px rgba(244, 63, 94, 0.15);
+            z-index: 10;
+        }
+
+        /* ── Empty state ───────────────────────────── */
+        #emptyState {
+            text-align: center;
+            padding: var(--space-10) var(--space-5);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .empty-illustration {
+            width: 120px; height: 120px;
+            margin: 0 auto var(--space-5);
+            background: var(--bg-surface);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 1px solid var(--border-glass);
+            box-shadow: inset 0 0 40px rgba(255,255,255,0.02);
+            position: relative;
+        }
+        .empty-illustration::after {
+            content: ''; position: absolute; inset: -20px;
+            border: 1px dashed var(--border-glass);
+            border-radius: 50%; animation: spin 20s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        #emptyState p { color: var(--text-secondary); font-size: 1.05rem; line-height: 1.6; }
+
+        /* ── Result section ────────────────────────── */
+        #resultsSection { display: none; }
+        #resultsSection.active { display: block; }
+
+        /* Dominant emotion hero card */
+        .dominant-card {
+            background: linear-gradient(135deg, rgba(244,63,94,0.1), rgba(249,115,22,0.05));
+            border: 1px solid rgba(244,63,94,0.2);
+            border-radius: var(--radius-2xl);
+            padding: var(--space-6) var(--space-8);
+            display: flex;
+            align-items: center;
+            gap: var(--space-6);
+            margin-bottom: var(--space-8);
+            box-shadow: var(--shadow-glow-purple);
+            position: relative;
+            overflow: hidden;
+        }
+        .dominant-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at center, rgba(244,63,94,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        .badge-wrap {
+            position: relative;
+            width: 110px; height: 110px;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        /* Conic gradient ring via CSS var updated in JS, fallback here */
+        .conic-ring {
+            position: absolute; inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(var(--accent-purple) 0%, var(--bg-surface) 0%);
+            mask: radial-gradient(transparent 58%, black 60%);
+            -webkit-mask: radial-gradient(transparent 58%, black 60%);
+            transition: background 1s ease-out;
+        }
+        .dominant-emoji { font-size: 4rem; position: relative; z-index: 2; line-height: 1; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); }
+        
+        /* Emotion Animations */
+        .emoji-anim-Happy { animation: animHappy 3s infinite; display: inline-block; }
+        @keyframes animHappy {
+            0% { transform: rotate(0deg) scale(1); }
+            15% { transform: rotate(15deg) scale(1.1); }
+            30% { transform: rotate(-15deg) scale(1.1); }
+            45% { transform: rotate(0deg) scale(1.2); }
+            60%, 100% { transform: rotate(0deg) scale(1); }
+        }
+        .emoji-anim-Angry { animation: animAngry 1.5s infinite; display: inline-block; }
+        @keyframes animAngry {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px) rotate(-5deg); }
+            20%, 40%, 60%, 80% { transform: translateX(4px) rotate(5deg); }
+        }
+        .emoji-anim-Sad { animation: animSad 4s infinite ease-in-out; display: inline-block; }
+        @keyframes animSad {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(8px) rotate(5deg) scale(0.95); }
+        }
+        .emoji-anim-Surprise { animation: animSurprise 2.5s infinite; display: inline-block; }
+        @keyframes animSurprise {
+            0%, 100% { transform: scale(1) translateY(0); }
+            10% { transform: scale(1.2) translateY(-10px); }
+            20% { transform: scale(1.1) translateY(-5px); }
+            30% { transform: scale(1) translateY(0); }
+        }
+        .emoji-anim-Fear { animation: animFear 0.5s infinite; display: inline-block; }
+        @keyframes animFear {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, -2px); }
+            75% { transform: translate(2px, 2px); }
+        }
+        .emoji-anim-Disgust { animation: animDisgust 3s infinite; display: inline-block; }
+        @keyframes animDisgust {
+            0%, 100% { transform: rotate(0deg) scale(1) translateX(0); }
+            25% { transform: rotate(-15deg) scale(0.9) translateX(-5px); }
+            50% { transform: rotate(-20deg) scale(0.9) translateX(-10px); }
+            75% { transform: rotate(-10deg) scale(0.95) translateX(-5px); }
+        }
+        .emoji-anim-Neutral { animation: animNeutral 4s infinite; display: inline-block; }
+        @keyframes animNeutral {
+            0%, 45%, 55%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+        
+        .dominant-info h2 { font-size: 0.9rem; font-weight: 700; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: var(--space-2); }
+        .dominant-info .emotion-name {
+            font-size: 3.5rem; font-weight: 800; letter-spacing: -1px;
+            background: linear-gradient(90deg, #fff, var(--accent-purple));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            line-height: 1.1; margin-bottom: var(--space-2);
+        }
+        .dominant-info .meta { display: flex; gap: var(--space-4); color: var(--text-secondary); font-size: 0.95rem; font-weight: 500; }
+        .meta span { color: var(--text-primary); font-weight: 600; }
+
+        /* Emotion breakdown bars */
+        .section-header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-5); }
+        .section-title { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; }
+        
+        .emotion-bars { 
+            background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-xl);
+            padding: var(--space-5) var(--space-6); margin-bottom: var(--space-8);
+        }
+        .ebar { display: flex; align-items: center; gap: var(--space-4); margin-bottom: 14px; }
+        .ebar:last-child { margin-bottom: 0; }
+        .ebar-emoji { font-size: 1.4rem; width: 30px; text-align: center; flex-shrink: 0; }
+        .ebar-name  { width: 70px; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); flex-shrink: 0; }
+        .ebar-bg    { flex: 1; height: 8px; background: var(--bg-surface); border-radius: 10px; overflow: hidden; position: relative; }
+        .ebar-fill {
+            height: 100%; border-radius: 10px;
+            background: var(--text-tertiary);
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .ebar-fill.top { 
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); 
+            box-shadow: 0 0 10px rgba(244, 63, 94, 0.5);
+        }
+        .ebar-pct { width: 45px; text-align: right; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+
+        /* Songs */
+        .mood-badge { background: rgba(244,63,94,0.15); border: 1px solid rgba(244,63,94,0.3); color: var(--accent-purple); padding: 4px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+
+        .song-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--space-4); }
+        .song-card {
+            background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: var(--radius-lg);
+            overflow: hidden; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex; flex-direction: column;
+        }
+        .song-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+        
+        .album-art-placeholder {
+            height: 140px; background: linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.05));
+            display: flex; align-items: center; justify-content: center; border-bottom: 1px solid var(--border-glass);
+            font-size: 2.5rem; color: var(--text-tertiary); position: relative;
+        }
+        .album-art-placeholder::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.4), transparent); }
+
+        .song-card-content { padding: var(--space-4); flex: 1; display: flex; flex-direction: column; }
+        .song-title  { font-weight: 700; font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); }
+        .song-artist { font-size: 0.85rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: var(--space-4); }
+        
+        .song-actions { display: flex; gap: var(--space-2); margin-top: auto; }
+        .song-open-btn {
+            flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px;
+            padding: 8px 12px; border-radius: var(--radius-md); text-decoration: none;
+            font-size: 0.8rem; font-weight: 600; transition: all 0.2s;
+        }
+        .btn-spotify { background: rgba(29, 185, 84, 0.1); color: var(--accent-green); border: 1px solid rgba(29, 185, 84, 0.2); }
+        .btn-spotify:hover { background: rgba(29, 185, 84, 0.2); }
+        .btn-youtube { background: rgba(255, 0, 0, 0.1); color: #ff4444; border: 1px solid rgba(255, 0, 0, 0.2); }
+        .btn-youtube:hover { background: rgba(255, 0, 0, 0.2); }
+
+        audio { width: 100%; height: 32px; margin-top: var(--space-3); border-radius: var(--radius-md); outline: none; }
+        audio::-webkit-media-controls-panel { background: rgba(255,255,255,0.05); }
+        audio::-webkit-media-controls-play-button, audio::-webkit-media-controls-mute-button { filter: invert(1); }
+        audio::-webkit-media-controls-current-time-display, audio::-webkit-media-controls-time-remaining-display { color: #fff; }
+
+        .no-songs { color: var(--text-tertiary); font-size: 0.95rem; padding: var(--space-5) 0; }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.2rem; }
+            .dominant-card { flex-direction: column; text-align: center; gap: var(--space-4); padding: var(--space-5); }
+            .dominant-info .meta { justify-content: center; }
+            .controls { flex-direction: column; background: transparent; border: none; box-shadow: none; gap: var(--space-3); width: 100%; }
+            select, .btn-primary, .btn-reset { width: 100%; text-align: center; justify-content: center; border: 1px solid var(--border-glass); background: var(--bg-surface); }
+            .btn-primary { background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue)); border: none; }
+            .divider { display: none; }
+            .topbar { padding: var(--space-4); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="logo">Mood<span>Tunes</span></div>
+    <div class="nav-indicator">Home</div>
+</div>
+
+<div class="main animate-fade-up">
+
+    <!-- Hero Controls -->
+    <div class="hero">
+        <h1>How Are You Feeling?</h1>
+        <p>Let your face dictate the vibe. Our AI scans your expression and curates the perfect soundtrack.</p>
+
+        <div class="controls">
+            <select id="language">
+                <option value="english">English</option>
+                <option value="hindi">Hindi</option>
+                <option value="kannada">Kannada</option>
+            </select>
+            <div class="divider"></div>
+            <button class="btn btn-primary" id="startBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                Start Scan
+            </button>
+            <button class="btn btn-reset" onclick="resetAll()">Reset</button>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="animate-fade-up delay-1">
+        <div class="empty-illustration">🎧</div>
+        <p>Your dashboard is empty.<br>Click <strong>Start Scan</strong> to begin emotion detection.</p>
+    </div>
+
+    <!-- Results -->
+    <div id="resultsSection">
+
+        <!-- Dominant Emotion Hero -->
+        <div class="dominant-card animate-fade-up">
+            <div class="badge-wrap">
+                <div class="conic-ring" id="confidenceRing"></div>
+                <div class="dominant-emoji" id="dominantEmoji">😐</div>
+            </div>
+            <div class="dominant-info">
+                <h2>Dominant Emotion</h2>
+                <div class="emotion-name" id="dominantName">—</div>
+                <div class="meta">
+                    <div>Confidence: <span id="dominantConf">0%</span></div>
+                    <div>Language: <span id="dominantLang">—</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emotion Breakdown -->
+        <div class="emotion-bars animate-fade-up delay-1">
+            <div class="section-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+                <div class="section-title">Analysis Breakdown</div>
+            </div>
+            <div id="emotionBarList"></div>
+        </div>
+
+        <!-- Song Recommendations -->
+        <div class="songs-section animate-fade-up delay-2">
+            <div class="section-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+                <div class="section-title">Curated Playlist</div>
+                <span class="mood-badge" id="moodBadge">—</span>
+            </div>
+            <div class="song-grid" id="songGrid"></div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const emotions = ['Angry','Disgust','Fear','Happy','Neutral','Sad','Surprise'];
+    const emojis   = {Angry:'😠',Disgust:'🤮',Fear:'😨',Happy:'😊',Neutral:'😐',Sad:'😢',Surprise:'😮'};
+    const langLabels = {english:'English', hindi:'Hindi', kannada:'Kannada'};
+
+    // ── On page load: restore saved language, check for existing results ───────
+    window.addEventListener('DOMContentLoaded', () => {
+        const savedLang = sessionStorage.getItem('scanLanguage');
+        if (savedLang) {
+            document.getElementById('language').value = savedLang;
+        }
+        loadResults();
+    });
+
+    async function loadResults() {
+        try {
+            const res  = await fetch('/get_scan_data');
+            const data = await res.json();
+
+            // Only show results if a completed scan exists
+            if (data.scan_progress === 100 && data.dominant_emotion) {
+                showResults(data);
+            }
+        } catch(e) {
+            console.log('No results to load yet');
+        }
+    }
+
+    function showResults(data) {
+        document.getElementById('emptyState').style.display    = 'none';
+        document.getElementById('resultsSection').classList.add('active');
+
+        const dom  = data.dominant_emotion || 'Neutral';
+        const pcts = data.emotion_percentages || {};
+        const conf = pcts[dom] || 0;
+        const lang = sessionStorage.getItem('scanLanguage') || 'english';
+
+        // ── Dominant emotion card ─────────────────────────────────────────────
+        document.getElementById('dominantEmoji').innerText = emojis[dom] || '😐';
+        document.getElementById('dominantEmoji').className = 'dominant-emoji emoji-anim-' + dom;
+        document.getElementById('dominantName').innerText  = dom;
+        document.getElementById('dominantConf').innerText  = conf.toFixed(1) + '%';
+        document.getElementById('dominantLang').innerText  = langLabels[lang] || lang;
+        document.getElementById('moodBadge').innerText     = `${emojis[dom]} ${dom}`;
+        
+        // Update conic ring
+        const ring = document.getElementById('confidenceRing');
+        ring.style.background = `conic-gradient(var(--accent-purple) ${conf}%, var(--bg-surface) ${conf}%)`;
+
+        // ── Emotion bars ──────────────────────────────────────────────────────
+        const barList = document.getElementById('emotionBarList');
+        barList.innerHTML = '';
+
+        // Sort by percentage descending
+        const sorted = [...emotions].sort((a, b) => (pcts[b]||0) - (pcts[a]||0));
+
+        sorted.forEach((e, idx) => {
+            const v   = pcts[e] || 0;
+            const top = (e === dom);
+            barList.innerHTML += `
+            <div class="ebar" style="animation-delay: ${idx * 0.05}s">
+                <span class="ebar-emoji">${emojis[e]}</span>
+                <span class="ebar-name">${e}</span>
+                <div class="ebar-bg">
+                    <div class="ebar-fill ${top ? 'top':''}" style="width:${v}%"></div>
+                </div>
+                <span class="ebar-pct">${v.toFixed(1)}%</span>
+            </div>`;
+        });
+
+        // ── Songs ─────────────────────────────────────────────────────────────
+        renderSongs(data.recommended_songs || []);
+    }
+
+    function renderSongs(songs) {
+        const grid = document.getElementById('songGrid');
+        grid.innerHTML = '';
+
+        if (!songs || songs.length === 0) {
+            grid.innerHTML = '<p class="no-songs">⚠️ No songs found. Check your internet connection.</p>';
+            return;
+        }
+
+        songs.forEach(song => {
+            const card = document.createElement('div');
+            card.className = 'song-card';
+            card.innerHTML = `
+                <div class="album-art-placeholder">🎵</div>
+                <div class="song-card-content">
+                    <div class="song-title">${song.title}</div>
+                    <div class="song-artist">${song.artist}</div>
+                    
+                    <div class="song-actions">
+                        ${song.spotify_search ? `<a class="song-open-btn btn-spotify" href="${song.spotify_search}" target="_blank">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.02zm1.44-3.3c-.301.42-.84.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.84.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+                            Spotify</a>` : ''}
+                        ${song.youtube_search ? `<a class="song-open-btn btn-youtube" href="${song.youtube_search}" target="_blank">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21.582,6.186c-0.23-0.86-0.908-1.538-1.768-1.768C18.254,4,12,4,12,4S5.746,4,4.186,4.418c-0.86,0.23-1.538,0.908-1.768,1.768C2,7.746,2,12,2,12s0,4.254,0.418,5.814c0.23,0.86,0.908,1.538,1.768,1.768C5.746,20,12,20,12,20s6.254,0,7.814-0.418c0.86-0.23,1.538-0.908,1.768-1.768C22,16.254,22,12,22,12S22,7.746,21.582,6.186z M10,15.464V8.536L16,12L10,15.464z"/></svg>
+                            YouTube</a>` : ''}
+                    </div>
+                    ${song.preview_url ? `
+                    <audio controls preload="none">
+                        <source src="${song.preview_url}" type="audio/mpeg">
+                    </audio>` : ''}
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    // ── Start Scan: save language, go to scan page ────────────────────────────
+    function startScan() {
+        const lang = document.getElementById('language').value;
+        sessionStorage.setItem('scanLanguage', lang);
+        window.location.href = '/scan';
+    }
+
+    // ── Reset ─────────────────────────────────────────────────────────────────
+    async function resetAll() {
+        await fetch('/reset_data', { method: 'POST' }).catch(() => {});
+        document.getElementById('resultsSection').classList.remove('active');
+        document.getElementById('emptyState').style.display = 'block';
+    }
+
+    document.getElementById('startBtn').onclick = startScan;
+</script>
+</body>
+</html>

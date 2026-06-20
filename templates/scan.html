@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Scan – MoodTunes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 1. DESIGN TOKENS (Shared with index.html) */
+        :root {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.7);
+            --border-glass: rgba(0, 0, 0, 0.08);
+            
+            --accent-purple: #f43f5e;
+            --accent-blue: #f97316;
+            --accent-pink: #ff416c;
+            
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #94a3b8;
+            
+            --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 24px;
+            
+            --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+            
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.06);
+            --font-main: 'Inter', sans-serif;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(244,63,94,0.04), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(249,115,22,0.04), transparent 25%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Header ─────────────────────────────────────────── */
+        .scan-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--space-4) var(--space-5);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-glass);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-title-group { display: flex; align-items: center; gap: var(--space-3); }
+        .nav-indicator { font-size: 0.85rem; font-weight: 600; color: var(--accent-pink); background: rgba(255,65,108,0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(255,65,108,0.2); display: flex; align-items: center; gap: 6px; }
+        .nav-indicator .dot { width: 6px; height: 6px; background: var(--accent-pink); border-radius: 50%; animation: blink 1.5s infinite; }
+        
+        .scan-header h2 { font-size:1.2rem; font-weight:700; letter-spacing: -0.5px; }
+
+        .stop-btn {
+            background: rgba(255, 65, 108, 0.1);
+            color: var(--accent-pink);
+            border: 1px solid rgba(255, 65, 108, 0.3);
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .stop-btn:hover { background: rgba(255, 65, 108, 0.2); transform: translateY(-1px); }
+
+        /* ── Layout ─────────────────────────────────────────── */
+        .layout {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: var(--space-5);
+            padding: var(--space-5);
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* ── Camera ─────────────────────────────────────────── */
+        .camera-wrap {
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            background: #000;
+            position: relative;
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            box-shadow: 0 0 40px rgba(244, 63, 94, 0.1);
+            min-height: 400px;
+        }
+        .camera-wrap img {
+            width: 100%; height: 100%; object-fit: cover;
+            transform: scaleX(-1); display: block;
+        }
+        
+        /* ── Scanning Overlay Effects ────────────────────────── */
+        .scan-overlay { position: absolute; inset: 0; pointer-events: none; border-radius: var(--radius-xl); overflow: hidden; z-index: 10; }
+        /* Ambient edge glow */
+        .scan-overlay::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 50px rgba(244, 63, 94, 0.2); pointer-events: none; }
+        
+        .scan-line {
+            position: absolute; width: 100%; height: 2px;
+            background: linear-gradient(to right, rgba(244,63,94,0) 0%, rgba(244,63,94,0.8) 50%, rgba(244,63,94,0) 100%);
+            box-shadow: 0 0 20px rgba(244,63,94,0.6), 0 0 8px rgba(249,115,22,0.8);
+            top: 0; animation: scan-laser 3s infinite ease-in-out;
+        }
+        @keyframes scan-laser { 0% { top: 5%; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 95%; opacity: 0; } }
+        
+        .corner {
+            position: absolute; width: 40px; height: 40px;
+            border: 2px solid rgba(244, 63, 94, 0.8); border-radius: 8px;
+            animation: focus-pulse 2s infinite ease-in-out;
+        }
+        .corner.tl { top: 30px; left: 30px; border-right: none; border-bottom: none; }
+        .corner.tr { top: 30px; right: 30px; border-left: none; border-bottom: none; }
+        .corner.bl { bottom: 30px; left: 30px; border-right: none; border-top: none; }
+        .corner.br { bottom: 30px; right: 30px; border-left: none; border-top: none; }
+        @keyframes focus-pulse { 0%, 100% { border-color: rgba(244, 63, 94, 0.3); transform: scale(1); } 50% { border-color: rgba(244, 63, 94, 1); transform: scale(1.05); } }
+
+        /* ── Right panel ─────────────────────────────────────── */
+        .info-panel { display: flex; flex-direction: column; gap: var(--space-4); }
+
+        .card {
+            background: var(--bg-glass); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass); border-radius: var(--radius-lg); padding: var(--space-4);
+            box-shadow: var(--shadow-glass);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+            transform-style: preserve-3d;
+        }
+        .card:hover {
+            transform: perspective(1200px) translateY(-8px) rotateX(4deg) rotateY(-2deg) scale(1.02);
+            box-shadow: 0 30px 50px rgba(0,0,0,0.12), 0 0 30px rgba(244, 63, 94, 0.15);
+            z-index: 10;
+        }
+        .card-title { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-secondary); margin-bottom: var(--space-4); }
+
+        /* ── Dominant emotion ────────────────────────────────── */
+        #dominantBlock { text-align: center; padding: var(--space-2) 0; }
+        #dominantEmoji  { font-size: 3.5rem; line-height: 1; margin-bottom: 8px; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3)); display: inline-block; }
+        #dominantLabel  { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, #111827, var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #dominantConf   { color: var(--text-secondary); font-size: 0.9rem; margin-top: 4px; font-weight: 500; }
+
+        /* Emotion Animations */
+        .emoji-anim-Happy { animation: animHappy 3s infinite; }
+        @keyframes animHappy {
+            0% { transform: rotate(0deg) scale(1); }
+            15% { transform: rotate(15deg) scale(1.1); }
+            30% { transform: rotate(-15deg) scale(1.1); }
+            45% { transform: rotate(0deg) scale(1.2); }
+            60%, 100% { transform: rotate(0deg) scale(1); }
+        }
+        .emoji-anim-Angry { animation: animAngry 1.5s infinite; }
+        @keyframes animAngry {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px) rotate(-5deg); }
+            20%, 40%, 60%, 80% { transform: translateX(4px) rotate(5deg); }
+        }
+        .emoji-anim-Sad { animation: animSad 4s infinite ease-in-out; }
+        @keyframes animSad {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(8px) rotate(5deg) scale(0.95); }
+        }
+        .emoji-anim-Surprise { animation: animSurprise 2.5s infinite; }
+        @keyframes animSurprise {
+            0%, 100% { transform: scale(1) translateY(0); }
+            10% { transform: scale(1.2) translateY(-10px); }
+            20% { transform: scale(1.1) translateY(-5px); }
+            30% { transform: scale(1) translateY(0); }
+        }
+        .emoji-anim-Fear { animation: animFear 0.5s infinite; }
+        @keyframes animFear {
+            0%, 100% { transform: translate(0, 0); }
+            25% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, -2px); }
+            75% { transform: translate(2px, 2px); }
+        }
+        .emoji-anim-Disgust { animation: animDisgust 3s infinite; }
+        @keyframes animDisgust {
+            0%, 100% { transform: rotate(0deg) scale(1) translateX(0); }
+            25% { transform: rotate(-15deg) scale(0.9) translateX(-5px); }
+            50% { transform: rotate(-20deg) scale(0.9) translateX(-10px); }
+            75% { transform: rotate(-10deg) scale(0.95) translateX(-5px); }
+        }
+        .emoji-anim-Neutral { animation: animNeutral 4s infinite; }
+        @keyframes animNeutral {
+            0%, 45%, 55%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.1); }
+        }
+
+        /* ── Emotion bars ────────────────────────────────────── */
+        .emotion-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: 12px; }
+        .emotion-row:last-child { margin-bottom: 0; }
+        .emo-emoji { font-size: 1.2rem; width: 28px; text-align: center; flex-shrink: 0; }
+        .emo-name  { width: 62px; font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); flex-shrink: 0; }
+        .bar-bg    { flex: 1; height: 8px; background: var(--bg-surface); border-radius: 10px; overflow: hidden; }
+        .bar-fill  { height: 100%; border-radius: 10px; background: var(--text-tertiary); transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1); width: 0%; }
+        .bar-fill.dominant { background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); box-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
+        .emo-pct { width: 40px; text-align: right; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+
+        /* ── Scan progress ────────────────────────────────────── */
+        .progress-bar-bg { height: 12px; background: var(--bg-surface); border-radius: 10px; overflow: hidden; margin-top: var(--space-2); border: 1px solid var(--border-glass); }
+        #scanProgressFill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, var(--accent-purple), var(--accent-blue)); transition: width 0.35s ease; width: 0%; position: relative; overflow: hidden; }
+        /* Animated stripes inside progress */
+        #scanProgressFill::after {
+            content: ''; position: absolute; inset: 0;
+            background-image: linear-gradient(45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent);
+            background-size: 1rem 1rem; animation: progress-stripes 1s linear infinite;
+        }
+        @keyframes progress-stripes { from { background-position: 1rem 0; } to { background-position: 0 0; } }
+        
+        #scanProgressText { font-size: 0.85rem; color: var(--text-secondary); margin-top: var(--space-2); text-align: right; font-weight: 500; }
+
+        @media (max-width: 900px) {
+            .layout { grid-template-columns: 1fr; }
+            .camera-wrap { min-height: 300px; }
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    </style>
+</head>
+<body>
+
+<div class="scan-header">
+    <div class="header-title-group">
+        <div class="nav-indicator"><div class="dot"></div>Live Scan</div>
+        <h2>MoodTunes Camera</h2>
+    </div>
+    <button class="stop-btn" id="stopBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+        Stop Scan
+    </button>
+</div>
+
+<div class="layout">
+
+    <!-- Camera Feed -->
+    <div class="camera-wrap">
+        <img src="/video_feed" alt="Camera Feed" id="cameraFeed">
+        
+        <!-- Professional Scanner Overlay -->
+        <div class="scan-overlay">
+            <div class="scan-line"></div>
+            <div class="corner tl"></div>
+            <div class="corner tr"></div>
+            <div class="corner bl"></div>
+            <div class="corner br"></div>
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div class="info-panel">
+
+        <!-- Dominant emotion big display -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                Current Emotion
+            </div>
+            <div id="dominantBlock">
+                <div id="dominantEmoji">😐</div>
+                <div id="dominantLabel">Neutral</div>
+                <div id="dominantConf">Confidence: 0%</div>
+            </div>
+        </div>
+
+        <!-- Live emotion percentage bars -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
+                Live Analysis
+            </div>
+            <div id="emotionBars"></div>
+        </div>
+
+        <!-- Scan progress -->
+        <div class="card">
+            <div class="card-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Scan Progress
+            </div>
+            <div class="progress-bar-bg">
+                <div id="scanProgressFill"></div>
+            </div>
+            <div id="scanProgressText">0% — Analyzing...</div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const emotions = ['Angry','Disgust','Fear','Happy','Neutral','Sad','Surprise'];
+    const emojis   = {Angry:'😠',Disgust:'🤮',Fear:'😨',Happy:'😊',Neutral:'😐',Sad:'😢',Surprise:'😮'};
+
+    // ── Build bar rows once ──────────────────────────────────────────────────
+    function buildBars() {
+        const container = document.getElementById('emotionBars');
+        container.innerHTML = '';
+        emotions.forEach(e => {
+            container.innerHTML += `
+            <div class="emotion-row" id="row-${e}">
+                <span class="emo-emoji">${emojis[e]}</span>
+                <span class="emo-name">${e}</span>
+                <div class="bar-bg">
+                    <div class="bar-fill" id="bar-${e}"></div>
+                </div>
+                <span class="emo-pct" id="pct-${e}">0%</span>
+            </div>`;
+        });
+    }
+
+    // ── Update bars with new data ────────────────────────────────────────────
+    function updateBars(percentages, dominant) {
+        let maxV = -1, maxE = 'Neutral';
+        emotions.forEach(e => {
+            const v = percentages[e] || 0;
+            if (v > maxV) { maxV = v; maxE = e; }
+        });
+
+        emotions.forEach(e => {
+            const v    = percentages[e] || 0;
+            const bar  = document.getElementById(`bar-${e}`);
+            const pct  = document.getElementById(`pct-${e}`);
+            if (bar) {
+                bar.style.width = v + '%';
+                bar.classList.toggle('dominant', e === maxE);
+            }
+            if (pct) pct.innerText = v.toFixed(1) + '%';
+        });
+
+        // Update dominant block
+        const dom = dominant || maxE;
+        const domEmojiEl = document.getElementById('dominantEmoji');
+        domEmojiEl.innerText = emojis[dom] || '😐';
+        domEmojiEl.className = 'emoji-anim-' + dom;
+        document.getElementById('dominantLabel').innerText = dom;
+        document.getElementById('dominantConf').innerText  =
+            'Confidence: ' + ((percentages[dom] || 0).toFixed(1)) + '%';
+    }
+
+    // ── Poll backend ─────────────────────────────────────────────────────────
+    async function poll() {
+        try {
+            const res  = await fetch('/get_scan_data');
+            const data = await res.json();
+            const p    = data.scan_progress || 0;
+
+            document.getElementById('scanProgressFill').style.width = p + '%';
+            document.getElementById('scanProgressText').innerText   =
+                p < 100 ? `${p}% — Analyzing...` : '100% — Done!';
+
+            updateBars(data.emotion_percentages || {}, data.dominant_emotion);
+
+            if (p < 100) {
+                setTimeout(poll, 300);          // fast poll = smooth bars
+            } else {
+                // Redirect to results page after brief pause
+                setTimeout(() => { window.location.href = '/'; }, 1500);
+            }
+        } catch (err) {
+            console.error('Poll error:', err);
+            setTimeout(poll, 600);
+        }
+    }
+
+    // ── Stop button ──────────────────────────────────────────────────────────
+    document.getElementById('stopBtn').addEventListener('click', async () => {
+        await fetch('/stop_scan', { method: 'POST' }).catch(() => {});
+        window.location.href = '/';
+    });
+
+    // ── Boot ─────────────────────────────────────────────────────────────────
+    buildBars();
+
+    (async () => {
+        // Tell backend to start scan (pass stored language if any)
+        const lang = sessionStorage.getItem('scanLanguage') || 'english';
+        await fetch('/start_scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ language: lang })
+        }).catch(() => {});
+        poll();
+    })();
+</script>
+</body>
+</html>
